@@ -12,50 +12,41 @@ I made `ShoppingCart` a **class** because it represents a shared object that mul
 
 # Explain one example where reference semantics matter
 
-Reference semantics are important when updating the shopping cart from different places. In my code, I can add products and calculate totals across multiple functions, all working on the same cart instance:  
+`ShoppingCart` is a **class**, so multiple parts of the code can modify the same cart instance. In my project:
 
 ```swift
-class ShoppingCart {
-    var products: [Product] = []
-
-    func add(product: Product) {
-        products.append(product)
-    }
-
-    func totalPrice() -> Double {
-        products.reduce(0) { $0 + ($1.price * Double($1.quantity)) }
-    }
-}
-
 let cart = ShoppingCart()
-let apple = Product(name: "Apple", price: 50.0, quantity: 2)
-cart.add(product: apple)
-print(cart.totalPrice()) // 100.0
+
+// Add products
+cart.addItem(product: laptop, quantity: 1)
+cart.addItem(product: book, quantity: 2)
+
+// Modify cart from another function
+func modifyCart(_ cart: ShoppingCart) {
+    cart.addItem(product: headphones, quantity: 1)
+}
+modifyCart(cart)
+
+print("Item count after modifyCart():", cart.itemCount) // Shows that headphones were added
 ```
-If ShoppingCart were a struct, these updates wouldn’t stick.
+This shows that ShoppingCart is reference type: changes in modifyCart affect the original cart.
 
 # Explain one example where value semantics matter
 
-Value semantics are useful for `Product`. In my project, I can make a copy of a product to adjust quantity or options without affecting the original catalog:
+`CartItem` is a struct, so copies can be modified independently:
 
 ```swift
-struct Product {
-    var name: String
-    var price: Double
-    var quantity: Int
-}
+var item1 = CartItem(product: laptop, quantity: 1)
+var item2 = item1
+item2.updateQuantity(5)
 
-var banana = Product(name: "Banana", price: 30.0, quantity: 1)
-var tempBanana = banana
-tempBanana.quantity = 5
-
-print("Original quantity: \(banana.quantity)") // 1
-print("Temp quantity: \(tempBanana.quantity)") // 5
+print("item1 quantity:", item1.quantity)  // 1
+print("item2 quantity:", item2.quantity)  // 5
 ```
-This keeps data safe and predictable while experimenting with product options.
+Changing item2 does not change item1, which makes structs predictable and safe to work with copies.
 
 # What challenges did you face and how did you solve them?
 
-The main challenge was deciding what should be a class versus a struct. Initially, I made everything structs, but updates to the cart didn’t persist. Switching `ShoppingCart` to a class solved this. Another tricky part was keeping the total price accurate after adding or removing items. I fixed this by using a **computed property** for total price that recalculates automatically whenever products change.
-
-Overall, this project helped me understand **reference vs value semantics** in Swift and when to use a class or struct. Plus, it was fun to see a small shop working in code!
+The main challenge was deciding what should be a class versus a struct. At first, I made everything structs, but updates to the cart didn’t persist. Switching `ShoppingCart` to a class fixed this immediately.
+Another tricky part was calculating totals and applying discounts. I solved it by adding **computed properties** (`subtotal`, `discountAmount`, `total`) that automatically update whenever items in the cart change.
+Overall, this project helped me understand **reference vs value semantics** in Swift and when to use a class or struct. It also showed how to structure a shopping cart system with products, orders, and users while keeping data safe and predictable.
