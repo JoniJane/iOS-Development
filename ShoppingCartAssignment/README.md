@@ -31,7 +31,7 @@ let cart = ShoppingCart()
 let apple = Product(name: "Apple", price: 50.0, quantity: 2)
 cart.add(product: apple)
 print(cart.totalPrice()) // 100.0
-
+```
 If ShoppingCart were a struct, these updates wouldn’t stick.
 
 # Explain one example where value semantics matter
@@ -51,7 +51,7 @@ tempBanana.quantity = 5
 
 print("Original quantity: \(banana.quantity)") // 1
 print("Temp quantity: \(tempBanana.quantity)") // 5
-
+```
 This keeps data safe and predictable while experimenting with product options.
 
 # What challenges did you face and how did you solve them?
