@@ -14,14 +14,16 @@ class ViewController: UIViewController {
 	}
 
 	@IBAction func rollButtonPressed(_ sender: Any) {
-		
 		changeUIImage()
 	}
+	
 	func changeUIImage() {
 		diceImageView1.image = diceArray.randomElement()
 		diceImageView2.image = diceArray.randomElement()
-		
 	}
-	
+
+	override func motionEnded(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+		changeUIImage()
+	}
 }
 
