@@ -39,7 +39,7 @@
 
 ---
 
-## 🖼️ Используемые ресурсы
+## Используемые ресурсы
 
 | Тип ресурса | Использование | Источник |
 |--------------|---------------|----------|
@@ -49,8 +49,8 @@
 
 ---
 
-## 🖥️ Скриншоты, Демонстрация функционала, Использованные материалы можете увидеть по ссылке
+## Скриншоты, Демонстрация функционала, Использованные материалы можете увидеть по ссылке
 
 https://drive.google.com/file/d/1gdqaUBMH0LXxJZN2nDSxGae0OztH-H4c/view?usp=sharing
-https://drive.google.com/drive/folders/1v6UPaSRY3x253iGSjsAEgOF8ZeDdAYka?usp=sharing
+https://drive.google.com/drive/folders/1AQnJ3Vk6JVv30d9zVcyAbItv4Xkqa3rx?usp=sharing
 https://drive.google.com/drive/folders/1hdQLh4I12WKLDlo7K5RjkHqa8bo8Cwuw?usp=sharing
