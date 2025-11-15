@@ -9,10 +9,10 @@ import UIKit
 
 class FavoriteItemCell: UITableViewCell {
 
-	@IBOutlet weak var itemImageView: UIImageView!
-	@IBOutlet weak var titleLabel: UILabel!
-	@IBOutlet weak var subtitleLabel: UILabel!
-	@IBOutlet weak var reviewLabel: UILabel!
+	@IBOutlet private weak var itemImageView: UIImageView!
+	@IBOutlet private weak var titleLabel: UILabel!
+	@IBOutlet private weak var subtitleLabel: UILabel!
+	@IBOutlet private weak var reviewLabel: UILabel!
 	
 	override func awakeFromNib() {
 		super.awakeFromNib()
