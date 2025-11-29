@@ -13,7 +13,6 @@ class ViewController: UIViewController {
 	@IBOutlet weak var tableView: UITableView!
 	
 	// MARK: - Storyboard Param
-	// Позволяет выбрать категорию прямо в Storyboard → Attributes Inspector
 	@IBInspectable var categoryName: String?
 	
 	// MARK: - Data
@@ -60,12 +59,8 @@ class ViewController: UIViewController {
 		tableView.dataSource = self
 		tableView.delegate = self
 
-		// ВАЖНО: фиксируем высоту строки,
-		// чтобы изображение и текст НЕ наезжали
 		tableView.rowHeight = 120
 		tableView.estimatedRowHeight = 120
-
-		// Регистрировать ячейку НЕ нужно — она в storyboard
 	}
 }
 
