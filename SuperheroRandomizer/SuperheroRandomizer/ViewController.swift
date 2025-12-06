@@ -13,9 +13,9 @@ class ViewController: UIViewController {
 	@IBOutlet weak var nameLabel: UILabel!
 	@IBOutlet weak var fullNameLabel: UILabel!
 	@IBOutlet weak var alignmentLabel: UILabel!
-	@IBOutlet weak var statsLabel: UILabel!
 	@IBOutlet weak var randomButton: UIButton!
 	@IBOutlet weak var loader: UIActivityIndicatorView!
+	@IBOutlet weak var statsStackView: UIStackView!
 
 	override func viewDidLoad() {
 		super.viewDidLoad()
@@ -64,15 +64,14 @@ class ViewController: UIViewController {
 		alignmentLabel.text = hero.displayAlignment
 
 		let stats = hero.powerstats
-		statsLabel.text =
-		"""
-		Intelligence: \(stats.intelligence)
-		Strength: \(stats.strength)
-		Speed: \(stats.speed)
-		Durability: \(stats.durability)
-		Power: \(stats.power)
-		Combat: \(stats.combat)
-		"""
+		statsStackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+
+		statsStackView.addArrangedSubview(StatsView(title: "Intelligence", value: stats.intelligence))
+		statsStackView.addArrangedSubview(StatsView(title: "Strength",     value: stats.strength))
+		statsStackView.addArrangedSubview(StatsView(title: "Speed",        value: stats.speed))
+		statsStackView.addArrangedSubview(StatsView(title: "Durability",   value: stats.durability))
+		statsStackView.addArrangedSubview(StatsView(title: "Power",        value: stats.power))
+		statsStackView.addArrangedSubview(StatsView(title: "Combat",       value: stats.combat))
 
 		heroImageView.load(from: hero.bestImageURL)
 	}
