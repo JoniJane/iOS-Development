@@ -22,12 +22,13 @@ final class RecipeCell: UITableViewCell {
 	func setFavorite(_ isFav: Bool) {
 		let name = isFav ? "heart.fill" : "heart"
 		heartButton.setImage(UIImage(systemName: name), for: .normal)
+		heartButton.isUserInteractionEnabled = true
 	}
-	
+
 	override func prepareForReuse() {
-			super.prepareForReuse()
-			onHeartTapped = nil
-			representedId = nil
-			dishImageView.image = UIImage(systemName: "photo")
-		}
+		super.prepareForReuse()
+		onHeartTapped = nil
+		representedId = nil
+		dishImageView.image = UIImage(systemName: "photo")
+	}
 }

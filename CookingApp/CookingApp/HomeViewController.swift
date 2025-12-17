@@ -4,29 +4,32 @@
 //
 //  Created by Zhanel Amanzhol on 17.12.2025.
 //
-
 import UIKit
 
 final class HomeViewController: UIViewController {
 
 	@IBOutlet weak var tableView: UITableView!
-	@IBOutlet weak var searchBar: UISearchBar!
 
 	private let api = MealDBAPI()
 	private var items: [MealDTO] = []
 
+	private let searchBar = UISearchBar(frame: .zero)
+
 	override func viewDidLoad() {
 		super.viewDidLoad()
-		title = "Cooking App"
+
+		// Title + Search in NavBar
+		navigationItem.title = "Cooking App"
+		searchBar.placeholder = "write the name of the dish..."
+		searchBar.showsCancelButton = true
+		searchBar.delegate = self
+
+		// кладём поисковик в навбар
+		navigationItem.titleView = searchBar
 
 		tableView.dataSource = self
 		tableView.delegate = self
 
-		searchBar.delegate = self
-		searchBar.placeholder = "write the name of the dish..."
-		searchBar.showsCancelButton = true
-
-		// чтобы Home обновлялся, если фавориты поменялись в Detail/Favorites
 		NotificationCenter.default.addObserver(self,
 											   selector: #selector(onFavoritesUpdated),
 											   name: .favoritesUpdated,
@@ -35,7 +38,6 @@ final class HomeViewController: UIViewController {
 
 	override func viewWillAppear(_ animated: Bool) {
 		super.viewWillAppear(animated)
-		// обновим сердечки, если вернулись назад
 		tableView.reloadData()
 	}
 
@@ -51,13 +53,13 @@ final class HomeViewController: UIViewController {
 		let q = (searchBar.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
 		guard !q.isEmpty else { return }
 
-		Task {
+		Task { [weak self] in
+			guard let self else { return }
 			do {
 				let result = try await api.searchMeals(query: q)
 				self.items = result
 				self.tableView.reloadData()
 
-				// если пусто — можно показать алерт (не обязательно)
 				if result.isEmpty {
 					self.showAlert(title: "No results", message: "Try another dish name.")
 				}
@@ -71,7 +73,6 @@ final class HomeViewController: UIViewController {
 	private func toggleFavorite(for meal: MealDTO) {
 		let fav = FavoriteMeal(id: meal.idMeal, title: meal.strMeal, thumb: meal.strMealThumb)
 		_ = FavoritesStore.shared.toggle(fav)
-		// favoritesUpdated придёт через NotificationCenter, но можно и сразу обновить строку
 	}
 
 	private func showAlert(title: String, message: String) {
@@ -122,16 +123,12 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
 			}
 		}
 
-		//  Favorite state
 		let isFav = FavoritesStore.shared.isFavorite(id: item.idMeal)
 		cell.setFavorite(isFav)
 
-		//  Tap
-		cell.onHeartTapped = { [weak self] in
-			guard let self else { return }
+		cell.onHeartTapped = { [weak self, weak tableView] in
+			guard let self, let tableView else { return }
 			self.toggleFavorite(for: item)
-
-			// обновим именно эту строку
 			tableView.reloadRows(at: [indexPath], with: .none)
 		}
 
@@ -146,4 +143,3 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
 		navigationController?.pushViewController(vc, animated: true)
 	}
 }
-

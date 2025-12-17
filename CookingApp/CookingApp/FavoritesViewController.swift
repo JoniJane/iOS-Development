@@ -17,6 +17,7 @@ final class FavoritesViewController: UIViewController {
 
 		tableView.dataSource = self
 		tableView.delegate = self
+		tableView.allowsSelection = true
 
 		NotificationCenter.default.addObserver(self,
 											   selector: #selector(reload),
@@ -54,31 +55,66 @@ extension FavoritesViewController: UITableViewDataSource, UITableViewDelegate {
 		cell.dishNameLabel.text = fav.title
 		cell.setFavorite(true)
 
-		cell.dishImageView.image = nil
-		ImageLoader.shared.load(fav.thumb) { image in
-			if tableView.indexPath(for: cell) == indexPath {
-				cell.dishImageView.image = image
+		cell.representedId = fav.id
+		cell.dishImageView.image = UIImage(systemName: "photo")
+
+		if let url = fav.thumb, !url.isEmpty {
+			ImageLoader.shared.load(url) { image in
+				DispatchQueue.main.async {
+					if cell.representedId == fav.id {
+						cell.dishImageView.image = image ?? UIImage(systemName: "photo")
+					}
+				}
 			}
 		}
 
-		cell.onHeartTapped = { [weak self] in
-			FavoritesStore.shared.remove(id: fav.id)
-			self?.reload()
+		cell.onHeartTapped = { [weak self, weak cell] in
+			guard let self else { return }
+
+			// 1) UI сразу
+			cell?.setFavorite(false)
+
+			// 2) удаляем через задержку
+			let idToRemove = fav.id
+			DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+				guard let self else { return }
+
+				// ВАЖНО: remove без уведомления, иначе reload() сработает мгновенно
+				FavoritesStore.shared.remove(id: idToRemove, notify: false)
+
+				guard let row = self.items.firstIndex(where: { $0.id == idToRemove }) else { return }
+				self.items.remove(at: row)
+				self.tableView.deleteRows(at: [IndexPath(row: row, section: 0)], with: .automatic)
+
+				// теперь уведомим остальные экраны
+				NotificationCenter.default.post(name: .favoritesUpdated, object: nil)
+			}
 		}
 
 		return cell
 	}
 
-	// swipe to remove
+	// переход в Detail — ВНЕ cellForRowAt
+	func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+		tableView.deselectRow(at: indexPath, animated: true)
+
+		let fav = items[indexPath.row]
+		let vc = storyboard!.instantiateViewController(withIdentifier: "DetailViewController") as! DetailViewController
+		vc.mealId = fav.id
+		navigationController?.pushViewController(vc, animated: true)
+	}
+
+	// swipe — ВНЕ cellForRowAt
 	func tableView(_ tableView: UITableView,
 				   trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+
 		let remove = UIContextualAction(style: .destructive, title: "Remove") { [weak self] _, _, done in
 			guard let self else { done(true); return }
 			let fav = self.items[indexPath.row]
 			FavoritesStore.shared.remove(id: fav.id)
-			self.reload()
 			done(true)
 		}
+
 		return UISwipeActionsConfiguration(actions: [remove])
 	}
 }
