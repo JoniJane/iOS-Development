@@ -9,6 +9,7 @@ import UIKit
 final class HomeViewController: UIViewController {
 
 	@IBOutlet weak var tableView: UITableView!
+	@IBOutlet weak var welcomeView: UIView!
 
 	private let api = MealDBAPI()
 	private var items: [MealDTO] = []
@@ -21,19 +22,38 @@ final class HomeViewController: UIViewController {
 		// Title + Search in NavBar
 		navigationItem.title = "Cooking App"
 		searchBar.placeholder = "write the name of the dish..."
-		searchBar.showsCancelButton = true
-		searchBar.delegate = self
+		
+		if let tf = searchBar.searchTextField as UITextField? {
+			let font = UIFont(name: "HiraMinProN-W3", size: 16) ?? UIFont.systemFont(ofSize: 16)
 
-		// кладём поисковик в навбар
-		navigationItem.titleView = searchBar
+			tf.font = font
+			tf.textColor = .label
 
-		tableView.dataSource = self
-		tableView.delegate = self
+			tf.attributedPlaceholder = NSAttributedString(
+				string: "write the name of the dish...",
+				attributes: [
+					.font: font,
+					.foregroundColor: UIColor.secondaryLabel
+				]
+			)
+	}
+		
+	searchBar.showsCancelButton = true
+	searchBar.delegate = self
 
-		NotificationCenter.default.addObserver(self,
-											   selector: #selector(onFavoritesUpdated),
-											   name: .favoritesUpdated,
-											   object: nil)
+	// кладём поисковик в навбар
+	navigationItem.titleView = searchBar
+
+	tableView.dataSource = self
+	tableView.delegate = self
+
+	NotificationCenter.default.addObserver(self,
+											selector: #selector(onFavoritesUpdated),
+											name: .favoritesUpdated,
+											object: nil)
+
+		//при первом открытии — показываем welcome
+		updateEmptyState()
 	}
 
 	override func viewWillAppear(_ animated: Bool) {
@@ -49,6 +69,12 @@ final class HomeViewController: UIViewController {
 		tableView.reloadData()
 	}
 
+	private func updateEmptyState() {
+		// если нет items — показываем welcomeView, иначе прячем
+		welcomeView.isHidden = !items.isEmpty
+		// tableView всегда пусть остаётся, просто под welcomeView
+	}
+
 	private func performSearch() {
 		let q = (searchBar.text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
 		guard !q.isEmpty else { return }
@@ -58,14 +84,20 @@ final class HomeViewController: UIViewController {
 			do {
 				let result = try await api.searchMeals(query: q)
 				self.items = result
-				self.tableView.reloadData()
 
-				if result.isEmpty {
-					self.showAlert(title: "No results", message: "Try another dish name.")
+				DispatchQueue.main.async {
+					self.tableView.reloadData()
+					self.updateEmptyState()
+
+					if result.isEmpty {
+						self.showAlert(title: "No results", message: "Try another dish name.")
+					}
 				}
 			} catch {
 				print("MealDB error:", error)
-				self.showAlert(title: "Error", message: "Could not load recipes. Check internet.")
+				DispatchQueue.main.async {
+					self.showAlert(title: "Error", message: "Could not load recipes. Check internet.")
+				}
 			}
 		}
 	}
@@ -94,6 +126,7 @@ extension HomeViewController: UISearchBarDelegate {
 		searchBar.text = ""
 		items = []
 		tableView.reloadData()
+		updateEmptyState()
 		searchBar.resignFirstResponder()
 	}
 }
@@ -126,10 +159,14 @@ extension HomeViewController: UITableViewDataSource, UITableViewDelegate {
 		let isFav = FavoritesStore.shared.isFavorite(id: item.idMeal)
 		cell.setFavorite(isFav)
 
-		cell.onHeartTapped = { [weak self, weak tableView] in
-			guard let self, let tableView else { return }
+		// фикс: перезагружаем строку по актуальному indexPath ячейки
+		cell.onHeartTapped = { [weak self, weak tableView, weak cell] in
+			guard let self, let tableView, let cell else { return }
 			self.toggleFavorite(for: item)
-			tableView.reloadRows(at: [indexPath], with: .none)
+
+			if let currentIndexPath = tableView.indexPath(for: cell) {
+				tableView.reloadRows(at: [currentIndexPath], with: .none)
+			}
 		}
 
 		return cell
